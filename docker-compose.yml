@@ -1,7 +1,7 @@
 services:
-  SlopCoin:
+  slopcoin:
     build: .
-    container_name: SlopCoin_advisor
+    container_name: slopcoin_advisor
     restart: unless-stopped
     
     # SECURITY: Container Härtung
