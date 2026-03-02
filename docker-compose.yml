@@ -13,7 +13,9 @@ services:
     
     volumes:
       - ./src:/app/src:ro        # Code: Read-Only
-      - ./secrets/ai_hub_key.txt:/run/secrets/ai_hub_key.txt:ro # AI Hub Key als Datei-"Secret"
+      - ./secrets/ai_hub_key.txt:/run/secrets/ai_hub_key.txt:ro       # AI Hub Key als Datei-"Secret"
+      - ./secrets/kraken_api.json:/run/secrets/kraken_api.json:ro     # Kraken API-Creds als Datei-"Secret"
+      - ./secrets/telegram_token.txt:/run/secrets/telegram_token.txt:ro # Telegram Bot Token als Datei-"Secret"
       # Temporäre Verzeichnisse als tmpfs (in-memory) für bessere Security
     
     tmpfs:
