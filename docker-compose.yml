@@ -13,7 +13,7 @@ services:
     
     volumes:
       - ./src:/app/src:ro        # Code: Read-Only
-      - ./secrets:/app/secrets:ro # Secrets: Read-Only
+      - ./secrets/ai_hub_key.txt:/run/secrets/ai_hub_key.txt:ro # AI Hub Key als Datei-"Secret"
       # Temporäre Verzeichnisse als tmpfs (in-memory) für bessere Security
     
     tmpfs:
