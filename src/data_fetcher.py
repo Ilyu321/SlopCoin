@@ -223,7 +223,12 @@ class MarketData:
                 if total_val > 0.001:
                     portfolio[k] = total_val
 
-            logger.info(f"Portfolio geladen: {len(portfolio)} Coins")
+            # Debug-Log des normalisierten Portfolios, um Mapping-Probleme (z.B. BTC vs XBT) zu erkennen
+            try:
+                logger.info(f"Portfolio geladen: {len(portfolio)} Coins -> {json.dumps(portfolio)}")
+            except Exception:
+                logger.info(f"Portfolio geladen: {len(portfolio)} Coins (Details nicht serialisierbar)")
+
             cache_manager.set('portfolio', portfolio, ttl=PORTFOLIO_CACHE_TTL)
             return portfolio
         except Exception as e:
