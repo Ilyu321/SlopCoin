@@ -306,7 +306,18 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         _, prices = market.get_portfolio_with_prices()
-        total_eur = sum(portfolio.get(c, 0) * prices.get(c, 0) for c in portfolio if prices.get(c))
+
+        # Coins ohne gültigen Preis (None oder 0) für Logging erfassen
+        invalid_price_coins = {c: prices.get(c) for c in portfolio if not prices.get(c)}
+        if invalid_price_coins:
+            logger.warning(f"/status: Coins ohne gültigen Preis: {invalid_price_coins}")
+
+        # Nur Coins mit gültigem Preis für Wertberechnungen verwenden
+        valid_portfolio_items = [
+            (c, a) for c, a in portfolio.items() if prices.get(c) not in (None, 0)
+        ]
+
+        total_eur = sum(amount * prices.get(coin, 0) for coin, amount in valid_portfolio_items)
 
         lines = [f"*Portfolio-Status* (Stand: {datetime.now().strftime('%d.%m.%Y %H:%M')})\n"]
         lines.append(f"*Gesamtwert:* {total_eur:.2f} EUR\n")
@@ -322,13 +333,24 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     lines.append(f"*Schlechtester Performer:* {perf['worst_performer']['coin']} ({perf['worst_performer']['roi_percent']:+.2f}%)\n")
 
         lines.append("\n*Positionen:*")
-        for coin, amount in sorted(portfolio.items(), key=lambda x: -x[1] * prices.get(x[0], 0)):
+        # Nur valide Positionen sortieren; None-Preise werden ausgeschlossen
+        for coin, amount in sorted(
+            valid_portfolio_items,
+            key=lambda x: -(x[1] * (prices.get(x[0]) or 0)),
+        ):
             p = prices.get(coin)
             if p is None:
                 continue
             val = amount * p
             pct = (val / total_eur * 100) if total_eur else 0
             lines.append(f"• {coin}: {amount:.4f} ≈ {val:.2f} EUR ({pct:.1f}%)")
+
+        # Hinweis für Coins ohne Preis ans Ende der Nachricht hängen
+        if invalid_price_coins:
+            missing_list = ", ".join(sorted(invalid_price_coins.keys()))
+            lines.append(
+                f"\n_Hinweis: Für folgende Coins sind aktuell keine Preise verfügbar und sie wurden in der Aufstellung ignoriert: {missing_list}_"
+            )
 
         await update.message.reply_text("\n".join(lines), parse_mode='Markdown')
     except Exception as e:
